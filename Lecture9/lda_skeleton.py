@@ -2,7 +2,7 @@ import numpy as np
 from scipy import linalg
 
 
-class LDA(object):
+class My_LDA(object):
 
     def __init__(self, K):
         self.K = K
@@ -44,9 +44,12 @@ class LDA(object):
         self.explained_variance_, self.explained_variance_ratio_, self.eigenvectors"""
         S_w, S_b = self.compute_scatters(X, y)
         S_w_inverse = np.linalg.inv(S_w)
-        self.explained_variance_, self.eigenvectors_ = linalg.eig(np.dot(S_w_inverse, S_b))
-        sum_ = sum(self.explained_variance_**2)
-        self.explained_variance_ratio_ = np.array([self.explained_variance_[i]**2 / sum_ for i in range(len(self.explained_variance_))])
+        self.explained_variance_, self.eigenvectors_ = linalg.eig(np.dot(S_w_inverse, S_b), left=True, right=False)
+        sum_ = sum(np.abs(self.explained_variance_ ** 2))
+        self.explained_variance_ratio_ = np.array([np.abs(self.explained_variance_[i] ** 2) / sum_ for i in range(len(self.explained_variance_))])
+        sorted_eig_ind = np.argsort(-1 * self.explained_variance_ratio_)
+        self.eigenvectors_ = self.eigenvectors_[:, sorted_eig_ind]
+        self.explained_variance_ = self.explained_variance_[sorted_eig_ind]
 
     def transform(self, X):
         """
@@ -55,5 +58,5 @@ class LDA(object):
         """
         """TODO use self.explained_variance_ratio_ and self.eigenvectors_
         to project X from dimension N to K"""
-        dot = np.dot(X, self.eigenvectors_[:self.K].T)
-        return dot
+        w = self.eigenvectors_[:, :self.K]
+        return X.dot(w)
